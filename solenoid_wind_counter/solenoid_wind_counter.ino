@@ -17,55 +17,54 @@ uint16_t counter = 0;
 // Onetime setup
 void setup() {
   pinMode(PHOTOTRANSISTOR_DIGITAL_PIN, INPUT);
-  pinMode(RESET_BUTTON_DIGITAL_PIN, INPUT_PULLUP);
+  //pinMode(RESET_BUTTON_DIGITAL_PIN, INPUT_PULLUP);
 
-  // install an interrupt to read the phototransistor pin. 
-  attachInterrupt(digitalPinToInterrupt(PHOTOTRANSISTOR_DIGITAL_PIN), count_interrupt, RISING);
-  // install an interrupt to reset the counter
-  attachInterrupt(digitalPinToInterrupt(RESET_BUTTON_DIGITAL_PIN), reset_interrupt, FALLING);
+  // install an interrupt to read the phototransistor pin.
+  attachInterrupt(digitalPinToInterrupt(PHOTOTRANSISTOR_DIGITAL_PIN),
+                  count_interrupt, RISING);
 
-  // set up the LCD's number of columns and rows:
-  lcd.begin(16, 2);
-  // Print a message to the LCD.
-  lcd.print("Count");
-  
+  clear_lcd();
+  print_lcd_count(0);
   Serial.begin(9600);           //  setup serial
 }
 
 // Main Loop
 void loop() {
   // Poll the counter looking for changes every once in a while
-
+  
   // Minimize reads from 'counter' by storing in a tmp variable as it is changed in the intterupt
-  uint16_t tmpCounter = counter; 
+  uint16_t tmpCounter = counter;
   if (lastCounterValue != tmpCounter) {
     Serial.println(tmpCounter);
     lastCounterValue = tmpCounter;
+    // Refresh the LCD Display
+    print_lcd_count(tmpCounter);
   } else {
     Serial.print(".");
   }
-  delay(500);
-
-  // Refresh the LCD Display
-  print_lcd_count(tmpCounter); 
+ 
+  delay(1000);
 }
 
-// When the Phototransistor sees light, current flows through and pulls down the 
+// When the Phototransistor sees light, current flows through and pulls down the
 // Voltage at R2
-void  count_interrupt() {
+void count_interrupt() {
   // TODO: Debounce?
   counter++;
 }
 
-void reset_interrupt() {
-  // TODO: Debounce?
-  counter = 0;
+void clear_lcd() {
+  lcd.clear();
+  // Print a message to the LCD.
+  lcd.begin(16, 2);
+  lcd.print("Count");
 }
 
 void print_lcd_count(uint16_t val) {
   // set the cursor to column 0, line 1
   // (note: line 1 is the second row, since counting begins with 0):
-  lcd.setCursor(7, 0);
-  // print the number of seconds since reset:
+ 
+  // print the number passed to the function
+  lcd.setCursor(0, 1);
   lcd.print(val);
 }
